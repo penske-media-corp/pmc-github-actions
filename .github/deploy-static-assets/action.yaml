@@ -22,7 +22,6 @@ on:
 permissions:
   contents: read
 
-
 jobs:
   deploy-static-assets:
     name: "Deploy Static Assets"
