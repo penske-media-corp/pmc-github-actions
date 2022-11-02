@@ -45,7 +45,7 @@ jobs:
 
       - name: Set bucket name variable
         run: |
-          echo "S3_BUCKET_NAME=tf-$${{ input.BUSINESS_UNIT }}-${ENVIRONMENT}-${{ input.BUCKET_IDENTIFIER }}-larva-$${{ input.AWS_REGION }}" >> $GITHUB_ENV
+          echo "S3_BUCKET_NAME=tf-$${{ inputs.BUSINESS_UNIT }}-${ENVIRONMENT}-${{ inputs.BUCKET_IDENTIFIER }}-larva-$${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -77,7 +77,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
-          aws-region: ${{ input.AWS_REGION }}
+          aws-region: ${{ inputs.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
           role-duration-seconds: 1200
           role-session-name: ${{ env.BUSINESS_UNIT }}-${{ env.ENVIRONMNET }}
@@ -89,7 +89,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
-          aws-region: ${{ input.AWS_REGION }}
+          aws-region: ${{ inputs.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
           role-duration-seconds: 1200
           role-session-name: ${{ env.BUSINESS_UNIT }}-${{ env.ENVIRONMNET }}
