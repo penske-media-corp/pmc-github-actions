@@ -1,0 +1,88 @@
+name: Deploy Static Assets
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy-static-assets:
+    name: "Deploy Static Assets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Sets env vars for staging
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "AWS_ACCOUNT_NUMBER=925863785861" >> $GITHUB_ENV
+          echo "ENVIRONMENT=stg" >> $GITHUB_ENV
+
+      - name: Sets env vars for production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "AWS_ACCOUNT_NUMBER=822851984708" >> $GITHUB_ENV
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+
+      - name: Set bucket name variable
+        run: |
+          echo "S3_BUCKET_NAME=tf-${BUSINESS_UNIT}-${ENVIRONMENT}-${BUCKET_IDENTIFIER}-larva-${AWS_REGION}" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Run larva
+        run: |
+          cd assets
+          npm install
+          npm run larva& #Run as background task
+
+      - name: Run build-html scripts
+        run: |
+          cd assets
+          npm run build-html -- larva
+          npm run build-html -- project
+
+      - name: Assume Devops-Admin IAM role Staging
+        if: github.ref != 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
+          role-duration-seconds: 1200
+          role-session-name: ${{ env.BUSINESS_UNIT }}-${{ env.ENVIRONMNET }}
+          role-skip-session-tagging: true
+
+      - name: Assume Devops-Admin IAM role Production
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
+          role-duration-seconds: 1200
+          role-session-name: ${{ env.BUSINESS_UNIT }}-${{ env.ENVIRONMNET }}
+          role-skip-session-tagging: true
+
+      - name: Remove files from S3
+        run: |
+          aws s3 rm s3://${S3_BUCKET_NAME}/ --recursive
+
+      - name: Copy assets to S3
+        run: |
+          aws s3 cp assets/build/html/ s3://${S3_BUCKET_NAME}/ --recursive
