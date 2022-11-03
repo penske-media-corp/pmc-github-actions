@@ -29,6 +29,16 @@ on:
         required: true
         type: string
 
+    secrets:
+      PROD_ACCESS_KEY:
+        required: true
+      PROD_SECRET_ACCESS_KEY:
+        required: true
+      STG_ACCESS_KEY:
+        required: true
+      STG_SECRET_ACCESS_KEY:
+        required: true
+
 permissions:
   contents: read
 
@@ -74,8 +84,8 @@ jobs:
         if: github.ref != 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.PMC_STG_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.STG_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.STG_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
           role-duration-seconds: 1200
@@ -86,8 +96,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.PMC_PROD_TERRAFORMER_READ_ONLY_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.PROD_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.PROD_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
           role-duration-seconds: 1200
