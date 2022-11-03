@@ -72,7 +72,7 @@ jobs:
       - name: Run larva
         run: |
           cd assets
-          npm install
+          npm ci
           npm run larva& #Run as background task
 
       - name: Run build-html scripts
