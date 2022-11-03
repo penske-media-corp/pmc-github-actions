@@ -54,19 +54,12 @@ jobs:
 
       - name: Set bucket name variable
         run: |
-          echo "S3_BUCKET_NAME=tf-$${{ inputs.BUSINESS_UNIT }}-${ENVIRONMENT}-${{ inputs.BUCKET_IDENTIFIER }}-larva-$${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
+          echo "S3_BUCKET_NAME=tf-${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}-${{ inputs.BUCKET_IDENTIFIER }}-larva-${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
 
       - name: Run larva
         run: |
